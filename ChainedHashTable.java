@@ -57,7 +57,7 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
         int place = hashFunc.hash(key);
         List<Element<K,V>> list = table[place];
         for (Element<K,V> element : list){
-            if (element.key() == key)
+            if (element.key().equals(key))
                 return element.satelliteData();
         }
         return null;
