@@ -1,81 +1,71 @@
 import java.util.Random;
 
 public class IndexableSkipList extends AbstractSkipList {
-    final protected double p;	// p is the probability for "success" in the geometric process generating the height of each node.
+    final protected double p; // Probability for geometric height
+
     public IndexableSkipList(double probability) {
         super();
         this.p = probability;
     }
-	
-	@Override
+
+    @Override
     public void decreaseHeight() {
-        this.head.removeLevel();
-        this.tail.removeLevel();
+        head.removeLevel();
+        tail.removeLevel();
     }
 
     @Override
     public SkipListNode find(int key) {
-        int h = this.head.height();
-        SkipListNode node = this.head;
-        for (int i = h; i >= 0; i--){
-            SkipListNode nodetemp = node.getNext(i);
-            while (nodetemp != tail && nodetemp.key() <= key)
-            {
-                if (nodetemp.key() == key)
-                    return nodetemp;
-                else
-                    node = nodetemp;
+        SkipListNode node = head;
+        int level = head.height();
+        while (level >= 0) {
+            while (node.getNext(level) != tail && node.getNext(level).key() <= key) {
+                node = node.getNext(level);
             }
+            level--;
         }
         return node;
     }
 
     @Override
     public int generateHeight() {
-        int height = 0;
+        int h = 0;
         while (Math.random() > p) {
-            height++;
-            this.increaseHeight();
+            h++;
         }
-        return height;
+        return h;
     }
 
     @Override
     public int rank(int key) {
-        int h = this.head.height();
-        SkipListNode node = this.head;
+        SkipListNode node = head;
+        int level = head.height();
         int rank = 0;
-        for (int i = h; i >= 0; i--){
-            SkipListNode nodetemp = node.getNext(i);
-            while (nodetemp != tail && nodetemp.key() <= key)
-            {
-                rank += nodetemp.skip;
-                if (nodetemp.key() == key)
-                    return rank;
-                else
-                    node = nodetemp;
+        while (level >= 0) {
+            while (node.getNext(level) != tail && node.getNext(level).key() < key) {
+                rank += node.getSkip(level);
+                node = node.getNext(level);
             }
+            level--;
         }
         return rank;
     }
 
-
     public int select(int index) {
-        int h = this.head.height();
-        SkipListNode node = this.head;
+        SkipListNode node = head;
+        int level = head.height();
         int cnt = 0;
-        for (int i = h; i == 0; i--){
-            SkipListNode nodetemp = node.getNext(i);
-            while (nodetemp != tail && cnt + nodetemp.skip <= index)
-            {
-                cnt += nodetemp.skip;
-                node = nodetemp;
+        while (level >= 0) {
+            while (node.getNext(level) != tail && cnt + node.getSkip(level) <= index) {
+                cnt += node.getSkip(level);
+                node = node.getNext(level);
             }
+            level--;
         }
-        if (node.getNext(0) != tail && cnt + 1 == index + 1) {
-            return node.getNext(0).key();
+        node = node.getNext(0);
+        if (node != tail && cnt == index) {
+            return node.key();
         }
         return -1;
     }
-
 }
