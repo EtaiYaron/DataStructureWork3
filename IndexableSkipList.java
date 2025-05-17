@@ -10,15 +10,16 @@ public class IndexableSkipList extends AbstractSkipList {
 	@Override
     public void decreaseHeight() {
         this.head.removeLevel();
+        this.tail.removeLevel();
     }
 
     @Override
     public SkipListNode find(int key) {
         int h = this.head.height();
         SkipListNode node = this.head;
-        for (int i = h; i == 0; i--){
+        for (int i = h; i >= 0; i--){
             SkipListNode nodetemp = node.getNext(i);
-            while (nodetemp != null && nodetemp.key() <= key)
+            while (nodetemp != tail && nodetemp.key() <= key)
             {
                 if (nodetemp.key() == key)
                     return nodetemp;
@@ -44,9 +45,9 @@ public class IndexableSkipList extends AbstractSkipList {
         int h = this.head.height();
         SkipListNode node = this.head;
         int rank = 0;
-        for (int i = h; i == 0; i--){
+        for (int i = h; i >= 0; i--){
             SkipListNode nodetemp = node.getNext(i);
-            while (nodetemp != null && nodetemp.key() <= key)
+            while (nodetemp != tail && nodetemp.key() <= key)
             {
                 rank += nodetemp.skip;
                 if (nodetemp.key() == key)
@@ -55,7 +56,7 @@ public class IndexableSkipList extends AbstractSkipList {
                     node = nodetemp;
             }
         }
-        return rank +1;
+        return rank;
     }
 
 
@@ -65,14 +66,14 @@ public class IndexableSkipList extends AbstractSkipList {
         int cnt = 0;
         for (int i = h; i == 0; i--){
             SkipListNode nodetemp = node.getNext(i);
-            while (nodetemp != null && cnt <= index)
+            while (nodetemp != tail && cnt + nodetemp.skip <= index)
             {
                 cnt += nodetemp.skip;
-                if (cnt == index)
-                    return nodetemp.key();
-                else
-                    node = nodetemp;
+                node = nodetemp;
             }
+        }
+        if (node.getNext(0) != tail && cnt + 1 == index + 1) {
+            return node.getNext(0).key();
         }
         return -1;
     }
