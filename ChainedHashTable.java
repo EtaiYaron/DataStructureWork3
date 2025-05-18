@@ -10,6 +10,7 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
     private int capacity;
     private HashFunctor<K> hashFunc;
     private List<Element<K,V>>[] table;
+    private int numofelemets;
     private double loadfactor;
     private int k;
 
@@ -27,18 +28,21 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
         this.capacity = 1 << k;
         this.hashFunc = hashFactory.pickHash(k);
         this.table = new List[this.capacity];
+        numofelemets = 0;
         loadfactor = 0;
-        k = k;
+        this.k = k;
         for (int i = 0; i < this.capacity; i++) {
             table[i] = new LinkedList<>();
         }
     }
 
     private void ReHash() {
-        loadfactor /= 2;
         k++;
         this.capacity = 1 << k;
         List<Element<K,V>>[] temp = new List[this.capacity];
+        for (int i = 0; i < this.capacity; i++) {
+            temp[i] = new LinkedList<>();
+        }
         HashFunctor<K> hashFunc1 = hashFactory.pickHash(k);
         for (int i = 0; i < this.table.length; i++){
             List<Element<K,V>> list = table[i];
@@ -48,6 +52,7 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
         }
         this.hashFunc = hashFunc1;
         table = temp;
+        loadfactor = (double) numofelemets / capacity;
     }
 
     public V search(K key) {
@@ -69,10 +74,13 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
         }
         if (loadfactor >= maxLoadFactor)
             ReHash();
+        if (search(key) != null)
+            return;
         Element<K, V> element = new Element<>(key, value);
         int place = hashFunc.hash(key);
         table[place].add(element);
-        loadfactor += (1/this.capacity);
+        numofelemets++;
+        loadfactor = (double) numofelemets / this.capacity;
     }
 
     public boolean delete(K key) {
@@ -80,11 +88,16 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
             throw new IllegalArgumentException("cannot insert with null key");
         }
         int place = hashFunc.hash(key);
-        boolean ans = table[place].remove(search(key));
-        if (ans)
-            loadfactor -= (1/this.capacity);
-        return ans;
-
+        List<Element<K, V>> list = table[place];
+        for (Element<K, V> element: list){
+            if (element.key().equals(key)) {
+                list.remove(element);
+                numofelemets--;
+                loadfactor = (double) numofelemets / capacity;
+                return true;
+            }
+        }
+        return false;
     }
 
     public HashFunctor<K> getHashFunc() {

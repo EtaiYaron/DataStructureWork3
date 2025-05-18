@@ -11,6 +11,7 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
     private HashFunctor<K> hashFunc;
     private Element<K,V>[] table;
     private double loadfactor;
+    private int numofelements;
     private int k;
     private static final Element<Object, Object> DELETED = new Element<>(null, null);
 
@@ -26,7 +27,8 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
         this.hashFunc = hashFactory.pickHash(k);
         this.table = new Element[capacity];
         loadfactor = 0;
-        k = k;
+        this.k = k;
+        this.numofelements = 0;
 
     }
 	
@@ -58,15 +60,15 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
         int place = hashFunc.hash(key);
         for (int i = place; i < place + table.length; i++){
             if (table[i % table.length] == null || table[i % table.length] == DELETED) {
-                table[place] = element;
-                loadfactor += (1/this.capacity);
+                table[i % table.length] = element;
+                numofelements++;
+                loadfactor = (double) numofelements/this.capacity;
                 return;
             }
         }
     }
 
     private void ReHash(){
-        loadfactor /= 2;
         k++;
         this.capacity = 1 << k;
         Element<K,V>[] temp = new Element[this.capacity];
@@ -75,32 +77,35 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
             if (table[i] != null && table[i] != DELETED) {
                 int place = hashFunc1.hash(table[i].key());
                 for (int j = place; j < place + temp.length; j++) {
-                    if (temp[j % temp.length] == null)
+                    if (temp[j % temp.length] == null) {
                         temp[j % temp.length] = table[i];
+                        break;
+                    }
                 }
             }
         }
         this.hashFunc = hashFunc1;
         table = temp;
+        loadfactor = (double) numofelements / capacity;
     }
 
     public boolean delete(K key) {
         if (key == null) {
             throw new IllegalArgumentException("cannot insert with null key");
         }
-        boolean ans = false;
         int place = hashFunc.hash(key);
-        for (int i = place; i < place + table.length && !ans; i++){
-            if (table[i % table.length] != null && table[i % table.length] != DELETED) {
-                if (table[i % table.length].key().equals(key)) {
-                    ans = true;
-                    table[i % table.length] = (Element<K, V>) DELETED;
-                }
+        for (int i = place; i < place + table.length; i++) {
+            Element<K, V> e = table[i % table.length];
+            if (e == null) break;
+            if (e != DELETED && e.key().equals(key)) {
+                table[i % table.length] = (Element<K, V>) DELETED;
+                numofelements--;
+                loadfactor = (double) numofelements / capacity;
+                return true;
             }
         }
-        if (ans)
-            loadfactor -= (1/this.capacity);
-        return ans;    }
+        return false;
+    }
 
     public HashFunctor<K> getHashFunc() {
         return hashFunc;
