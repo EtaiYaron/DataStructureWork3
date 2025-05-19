@@ -16,6 +16,14 @@ public class MyDataStructure {
      *
      * @param N The maximal number of items that may reside in the DS.
      */
+
+
+    /*
+    Hash table allocates ~N buckets (capacity = 2^k ≈ N) theta of N.
+    Skip list initialization is theta of 1.
+    therefore we get theta of N.
+     */
+
     public MyDataStructure(int N) {
         int k = (int) Math.round(Math.log(N) / Math.log(2));
         table = new ChainedHashTable<>(new ModularHash(), k, 1);
@@ -23,52 +31,75 @@ public class MyDataStructure {
     }
 
     /*
-     * In the following functions,
-     * you should REMOVE the place-holder return statements.
+     indexable Skip list insert is theta of log n expected.
+     hash table insert/search is theta of 1 expected.
+     therefore we get theta of log n.
      */
-    public boolean insert(int value) {
-        boolean ans = false;
-        AbstractSkipList.SkipListNode node = skipList.insert(value);
-        if (node != null)
-            ans = true;
-        table.insert(value, new Element<>(value, node));
-        return ans;
-    }
 
-    public boolean delete(int value) {
-        Element<Integer,AbstractSkipList.SkipListNode> element = table.search(value);
-        if (!contains(value) || table.delete(value) || skipList.delete(element.satelliteData()))
+    public boolean insert(int value) {
+        AbstractSkipList.SkipListNode node = skipList.insert(value);
+        if (node == null)
             return false;
+        table.insert(value, new Element<>(value, node));
         return true;
     }
 
+    /*
+     indexable Skip list delete is theta of log n expected.
+     hash table delete/search is theta of 1 expected.
+     therefore we get theta of log n expected.
+     */
+
+    public boolean delete(int value) {
+        Element<Integer, AbstractSkipList.SkipListNode> element = table.search(value);
+        if (element == null)
+            return false;
+        boolean skipDeleted = skipList.delete(element.satelliteData());
+        boolean tableDeleted = table.delete(value);
+        return skipDeleted && tableDeleted;
+    }
+
+    /*
+     hash table search is theta of 1 expected.
+     therefore we get theta of 1 expected.
+     */
     public boolean contains(int value) {
         Element<Integer,AbstractSkipList.SkipListNode> element = table.search(value);
         return element != null;
     }
 
+    /*
+     indexable Skip list rank is theta of log n expected.
+     therefore we get theta of log n expected.
+     */
     public int rank(int value) {
         if (!contains(value))
             return -1;
         return skipList.rank(value);
     }
 
+    /*
+     indexable Skip list rank is theta of log n expected.
+     therefore we get theta of log n expected.
+     */
     public int select(int index) {
         return skipList.select(index);
     }
 
+    /*
+    contains is theta of 1 expected. initialization of list i theta of 1.
+    hash table search is theta of 1 expected. the while loop is theta of L
+    Where L is the output size. Each step is a skip list next pointer traversal.
+    therefore we get theta of L expected.
+    */
     public List<Integer> range(int low, int high) {
         if (!contains(low) || high < low)
             return null;
         ArrayList<Integer> list = new ArrayList<>();
-        list.addLast(low);
-        int index = skipList.rank(low);
-        int selected = skipList.select(index+1);
-        AbstractSkipList.SkipListNode skipListNode = table.search(selected).satelliteData();
-        while (selected <= high) {
-            list.addLast(selected);
+        AbstractSkipList.SkipListNode skipListNode = table.search(low).satelliteData();
+        while (skipListNode != null && skipListNode.key() <= high) {
+            list.add(skipListNode.key());
             skipListNode = skipListNode.getNext(0);
-            selected = skipListNode.key();
         }
         return list;
     }
