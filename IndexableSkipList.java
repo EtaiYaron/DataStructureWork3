@@ -66,6 +66,6 @@ public class IndexableSkipList extends AbstractSkipList {
         if (node != tail && cnt == index) {
             return node.key();
         }
-        return -1;
+        return Integer.MIN_VALUE;
     }
 }
