@@ -19,7 +19,7 @@ public class MultiplicativeShiftingHash implements HashFactory<Long> {
 
         public Functor(int k) {
             this.k = k;
-            this.a = utils.genLong(1, Long.MAX_VALUE);
+            this.a = utils.genLong(2, Long.MAX_VALUE);
         }
         @Override
         public int hash(Long key) {

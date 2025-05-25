@@ -23,8 +23,8 @@ public class ModularHash implements HashFactory<Integer> {
         public Functor(int k){
             m = (int) Math.pow(2, k);
             p = utils.genPrime((long)Integer.MAX_VALUE + 1, Long.MAX_VALUE);
-            a = rand.nextInt(Integer.MAX_VALUE - 1) + 1;
-            b = rand.nextInt(Integer.MAX_VALUE);
+            a = rand.nextInt(Integer.MAX_VALUE);
+            b = rand.nextInt(0, Integer.MAX_VALUE);
         }
 
         @Override
