@@ -74,8 +74,9 @@ public class ChainedHashTable<K, V> implements HashTable<K, V> {
         }
         if (loadfactor >= maxLoadFactor)
             ReHash();
-        if (search(key) != null)
-            return;
+        V data = search(key);
+        if (data != null)
+            delete(key);
         Element<K, V> element = new Element<>(key, value);
         int place = hashFunc.hash(key);
         table[place].add(element);

@@ -54,6 +54,9 @@ public class ProbingHashTable<K, V> implements HashTable<K, V> {
         if (key == null) {
             throw new IllegalArgumentException("cannot insert with null key");
         }
+        V data = search(key);
+        if (data != null)
+            delete(key);
         if (loadfactor >= maxLoadFactor)
             ReHash();
         Element<K, V> element = new Element<>(key, value);

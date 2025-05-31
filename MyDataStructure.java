@@ -8,7 +8,7 @@ public class MyDataStructure {
      * except for the List and its implementation for the operation Range(low, high).
      */
 
-    private ChainedHashTable<Integer ,Element<Integer, AbstractSkipList.SkipListNode>> table;
+    private ChainedHashTable<Integer ,AbstractSkipList.SkipListNode> table;
     private IndexableSkipList skipList;
 
     /***
@@ -40,7 +40,7 @@ public class MyDataStructure {
         AbstractSkipList.SkipListNode node = skipList.insert(value);
         if (node == null)
             return false;
-        table.insert(value, new Element<>(value, node));
+        table.insert(value, node);
         return true;
     }
 
@@ -51,10 +51,10 @@ public class MyDataStructure {
      */
 
     public boolean delete(int value) {
-        Element<Integer, AbstractSkipList.SkipListNode> element = table.search(value);
-        if (element == null)
+        AbstractSkipList.SkipListNode node = table.search(value);
+        if (node == null)
             return false;
-        boolean skipDeleted = skipList.delete(element.satelliteData());
+        boolean skipDeleted = skipList.delete(node);
         boolean tableDeleted = table.delete(value);
         return skipDeleted && tableDeleted;
     }
@@ -64,8 +64,8 @@ public class MyDataStructure {
      therefore we get theta of 1 expected.
      */
     public boolean contains(int value) {
-        Element<Integer,AbstractSkipList.SkipListNode> element = table.search(value);
-        return element != null;
+        AbstractSkipList.SkipListNode node = table.search(value);
+        return node != null;
     }
 
     /*
@@ -96,7 +96,7 @@ public class MyDataStructure {
         if (!contains(low) || high < low)
             return null;
         ArrayList<Integer> list = new ArrayList<>();
-        AbstractSkipList.SkipListNode skipListNode = table.search(low).satelliteData();
+        AbstractSkipList.SkipListNode skipListNode = table.search(low);
         while (skipListNode != null && skipListNode.key() <= high) {
             list.add(skipListNode.key());
             skipListNode = skipListNode.getNext(0);
